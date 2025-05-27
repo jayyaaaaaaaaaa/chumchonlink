@@ -1,0 +1,164 @@
+{% extends "myapp/base.html" %} {# kế thừa base template หลักของแอปพลิเคชัน myapp #}
+{% load i18n %}
+{% load static %}
+{% load widget_tweaks %}
+{% load socialaccount %} {# สำหรับ social login (ถ้ามี) #}
+
+{% block title %}{% trans "สมัครสมาชิก" %} - Chum-Chon Link{% endblock %}
+
+{% block content %}
+<section class="py-12 md:py-16 bg-gradient-to-br from-pink-100 via-purple-100 to-indigo-100 min-h-[calc(100vh-var(--header-height,8rem))] flex items-center justify-center">
+    <div class="container mx-auto px-4">
+        <div class="max-w-lg mx-auto bg-white p-8 sm:p-12 rounded-xl shadow-2xl transform transition-all hover:scale-105 duration-300">
+            <div class="text-center mb-8">
+                <a href="{% url 'home' %}" class="inline-block mb-6">
+                    <img src="{% static 'images/logo.png' %}" alt="Chum-Chon Link Logo" class="h-16 w-16 mx-auto">
+                </a>
+                <h1 class="text-3xl sm:text-4xl font-bold text-pink-600">{% trans "สร้างบัญชีใหม่" %}</h1>
+                <p class="text-gray-600 mt-3 text-base sm:text-lg">{% trans "เข้าร่วมชุมชนของเราวันนี้!" %}</p>
+            </div>
+
+            <form class="signup space-y-6" id="signup_form" method="post" action="{% url 'account_signup' %}">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="p-3 bg-red-50 text-red-700 rounded-lg text-sm border border-red-200">
+                        {% for error in form.non_field_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {# อีเมล #}
+                <div>
+                    <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1.5">
+                        {{ form.email.label_tag|cut:":"|safe }}
+                    </label>
+                    {% render_field form.email class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none transition-all duration-150 ease-in-out shadow-sm focus:shadow-md" placeholder=(_("you@example.com")) %}
+                    {% if form.email.errors %}
+                        <p class="text-red-600 text-xs mt-1.5">{{ form.email.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                {# ชื่อผู้ใช้ (ถ้า ACCOUNT_USERNAME_REQUIRED = True ใน settings.py) #}
+                {% if form.username %}
+                <div>
+                    <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1.5">
+                         {{ form.username.label_tag|cut:":"|safe }}
+                    </label>
+                    {% render_field form.username class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none transition-all duration-150 ease-in-out shadow-sm focus:shadow-md" placeholder=(_("ชื่อผู้ใช้ของคุณ")) %}
+                    {% if form.username.errors %}
+                        <p class="text-red-600 text-xs mt-1.5">{{ form.username.errors.0 }}</p>
+                    {% endif %}
+                     {% if form.username.help_text %}
+                        <p class="mt-1.5 text-xs text-gray-500">{{ form.username.help_text|safe }}</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+
+                {# รหัสผ่าน #}
+                <div>
+                    <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1.5">
+                         {{ form.password.label_tag|cut:":"|safe }}
+                    </label>
+                    {% render_field form.password class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none transition-all duration-150 ease-in-out shadow-sm focus:shadow-md" placeholder="••••••••" %}
+                    {% if form.password.errors %}
+                        <ul class="mt-1.5 text-xs text-red-600 list-disc list-inside">
+                        {% for error in form.password.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% endif %}
+                    {% if form.password.help_text %}
+                        <div class="mt-1.5 text-xs text-gray-500 space-y-1">
+                            {% for line in form.password.help_text|stringformat:"s"|split:"\n" %}
+                                <p>{{ line|safe }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                {# ยืนยันรหัสผ่าน #}
+                {% if form.password2 %}
+                <div>
+                    <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1.5">
+                        {{ form.password2.label_tag|cut:":"|safe }}
+                    </label>
+                    {% render_field form.password2 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none transition-all duration-150 ease-in-out shadow-sm focus:shadow-md" placeholder="••••••••" %}
+                    {% if form.password2.errors %}
+                        <p class="text-red-600 text-xs mt-1.5">{{ form.password2.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+
+                {% if redirect_field_value %}
+                    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                {% endif %}
+
+                <div class="pt-2">
+                    <button type="submit"
+                            class="w-full bg-pink-600 hover:bg-pink-700 active:bg-pink-800 text-white font-semibold py-3.5 px-4 rounded-lg shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 transition-all duration-150 ease-in-out text-base">
+                        {% trans "สมัครสมาชิก" %}
+                    </button>
+                </div>
+            </form>
+
+            {% get_providers as socialaccount_providers %}
+            {% if socialaccount_providers %}
+                <div class="relative flex py-5 items-center">
+                    <div class="flex-grow border-t border-gray-300"></div>
+                    <span class="flex-shrink mx-4 text-gray-500 text-sm">{% trans "หรือสมัครด้วย" %}</span>
+                    <div class="flex-grow border-t border-gray-300"></div>
+                </div>
+
+                <div class="space-y-3">
+                    {% for provider in socialaccount_providers %}
+                        {% if provider.id == 'google' %}
+                            <a href="{% provider_login_url provider.id process='login' next=request.GET.next %}"
+                               class="w-full flex items-center justify-center bg-white hover:bg-gray-100 text-gray-700 border border-gray-300 font-semibold py-3 px-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 ease-in-out text-base group">
+                                <svg class="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l0.001-0.001l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg>
+                                {% blocktrans with provider.name as name %}สมัครด้วย {{ name }}{% endblocktrans %}
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <p class="mt-10 text-center text-sm text-gray-600">
+                {% trans "มีบัญชีอยู่แล้ว?" %}
+                <a href="{% url 'account_login' %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="font-medium text-pink-600 hover:text-pink-800 hover:underline">
+                    {% trans "เข้าสู่ระบบที่นี่" %}
+                </a>
+            </p>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const navElement = document.querySelector('nav'); // Adjust selector if needed
+        if (navElement) {
+            const headerHeight = navElement.offsetHeight;
+            document.documentElement.style.setProperty('--header-height', headerHeight + 'px');
+        }
+
+        // ทำให้ help_text ของ password แสดงผลเป็น list
+        const passwordHelpText = document.querySelector('input[name="password"] + div.text-gray-500');
+        if (passwordHelpText && passwordHelpText.innerHTML.includes('<li>')) {
+             // Nothing to do, already list like
+        } else if (passwordHelpText) {
+            const lines = passwordHelpText.innerText.split('* ').filter(line => line.trim() !== '');
+            if (lines.length > 0) {
+                let html = '<ul class="list-disc list-inside space-y-1">';
+                lines.forEach(line => {
+                    html += `<li>${line.trim()}</li>`;
+                });
+                html += '</ul>';
+                passwordHelpText.innerHTML = html;
+            }
+        }
+    });
+</script>
+{% endblock %}
